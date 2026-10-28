@@ -1,53 +1,229 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>My Website</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <header class="nav">
-    <a class="logo" href="#">MySite</a>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Galactic Federation Corps</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: propaganda-poster hero, then briefing, operations grid, rank ladder, stratagem enlist panel. Dark single-look by choice. */
+:root {
+  --bg: #0c0d0f;
+  --panel: #16181c;
+  --line: #2b2f36;
+  --fg: #ecebe4;
+  --muted: #9a9da6;
+  --accent: #ffd400;
+  --accent-ink: #0c0d0f;
+  --alert: #e5392b;
+  --display: "Barlow Condensed", "Arial Narrow", Impact, sans-serif;
+  --body: "Barlow", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.6 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+a { color: inherit; }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.wrap { max-width: 1040px; margin: 0 auto; }
+
+.bar { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; justify-content: space-between; align-items: center; padding-block: 1rem; border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; }
+.bar .tag { color: var(--accent); }
+.bar nav { display: flex; gap: 1.25rem; flex-wrap: wrap; }
+.bar nav a { text-decoration: none; color: var(--muted); }
+.bar nav a:hover { color: var(--accent); }
+
+.hero { padding-block: 4rem 3.5rem; border-bottom: 1px solid var(--line); }
+.stripe { height: 14px; margin-bottom: 2rem; background: repeating-linear-gradient(-45deg, var(--accent) 0 14px, var(--bg) 14px 28px); }
+.kicker { font-family: var(--mono); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin: 0 0 1rem; }
+h1 { font: 800 clamp(3rem, 12vw, 8rem)/.9 var(--display); text-transform: uppercase; letter-spacing: -.01em; margin: 0 0 1.5rem; text-wrap: balance; }
+h1 em { font-style: normal; color: var(--accent); }
+.lede { max-width: 52ch; font-size: 1.2rem; color: var(--fg); margin: 0 0 2rem; }
+.cta { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; }
+.btn { display: inline-block; background: var(--accent); color: var(--accent-ink); font: 700 1.3rem/1 var(--display); letter-spacing: .06em; text-transform: uppercase; text-decoration: none; padding: 1rem 1.75rem; border: 0; cursor: pointer; clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px)); }
+.btn:hover { background: #fff; }
+.note { font-family: var(--mono); font-size: .8rem; color: var(--muted); }
+
+section { padding-block: 3.5rem; border-bottom: 1px solid var(--line); }
+.label { font-family: var(--mono); font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin: 0 0 .75rem; }
+h2 { font: 800 clamp(2rem, 6vw, 3.5rem)/1 var(--display); text-transform: uppercase; margin: 0 0 1.5rem; text-wrap: balance; }
+.brief { display: grid; gap: 2rem; grid-template-columns: 1fr; }
+.brief p { max-width: 62ch; margin: 0 0 1rem; color: #cfcfc8; }
+.brief p:last-child { margin: 0; }
+.facts { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); align-self: start; }
+.facts div { background: var(--panel); padding: .9rem 1.1rem; display: flex; justify-content: space-between; gap: 1rem; font-family: var(--mono); font-size: .85rem; }
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; color: var(--fg); text-align: right; }
+.facts dl { margin: 0; display: contents; }
+
+.ops { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); }
+.ops article { background: var(--panel); padding: 1.6rem; min-width: 0; }
+.ops h3 { font: 700 1.6rem/1.1 var(--display); text-transform: uppercase; margin: 0 0 .6rem; color: var(--accent); }
+.ops p { margin: 0; color: #cfcfc8; }
+
+.ranks { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.ranks li { display: grid; grid-template-columns: 9rem 1fr; gap: 1rem; padding-block: 1rem; border-bottom: 1px solid var(--line); align-items: baseline; }
+.ranks b { font: 700 1.5rem/1 var(--display); text-transform: uppercase; }
+.ranks span { color: #cfcfc8; min-width: 0; }
+
+.enlist { background: var(--panel); border: 1px solid var(--line); padding: 2rem; display: grid; gap: 1.5rem; }
+.enlist h2 { margin: 0; }
+.code { display: flex; flex-wrap: wrap; gap: .5rem; }
+.key { width: 3.2rem; height: 3.2rem; display: grid; place-items: center; font-size: 1.5rem; background: var(--bg); color: var(--muted); border: 2px solid var(--line); cursor: pointer; font-family: var(--mono); }
+.key.hit { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+.key.wrong { border-color: var(--alert); color: var(--alert); }
+.status { font-family: var(--mono); font-size: .9rem; min-height: 1.4em; margin: 0; color: var(--muted); }
+.status.ok { color: var(--accent); }
+
+footer { padding-block: 2rem; font-family: var(--mono); font-size: .75rem; color: var(--muted); display: grid; gap: .5rem; }
+footer b { color: var(--accent); font-weight: 500; letter-spacing: .1em; }
+
+@media (min-width: 800px) { .brief { grid-template-columns: 1.3fr 1fr; } .enlist { grid-template-columns: 1fr 1fr; align-items: center; } }
+@media (max-width: 520px) { .ranks li { grid-template-columns: 1fr; gap: .25rem; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+
+<div class="wrap">
+  <header class="bar">
+    <span class="tag">GFC // Discord Community</span>
     <nav>
-      <a href="#about">About</a>
-      <a href="#features">Features</a>
-      <a href="#contact">Contact</a>
+      <a href="#briefing">Briefing</a>
+      <a href="#operations">Operations</a>
+      <a href="#ranks">Ranks</a>
+      <a href="#enlist">Enlist</a>
     </nav>
   </header>
 
   <main>
-    <section class="hero">
-      <h1>Welcome to my website</h1>
-      <p>A clean, fast, responsive starting point you can make your own.</p>
-      <a class="btn" href="#contact">Get in touch</a>
-    </section>
+    <div class="hero">
+      <div class="stripe" aria-hidden="true"></div>
+      <p class="kicker">Recruitment open. Citizenship mandatory.</p>
+      <h1>Galactic <em>Federation</em> Corps</h1>
+      <p class="lede">A Helldivers community for players who drop together, die together and call in reinforcements together. Squads run every day. No diver deploys alone.</p>
+      <div class="cta">
+        <a class="btn" href="#enlist">Enlist now</a>
+        <span class="note">Free service. Liberty not included.</span>
+      </div>
+    </div>
 
-    <section id="about">
-      <h2>About</h2>
-      <p>Tell visitors who you are and what you do. Replace this text with your own story.</p>
-    </section>
-
-    <section id="features">
-      <h2>Features</h2>
-      <div class="cards">
-        <article><h3>Fast</h3><p>Plain HTML and CSS, no build step.</p></article>
-        <article><h3>Responsive</h3><p>Looks good on phones and desktops.</p></article>
-        <article><h3>Easy to edit</h3><p>Change the text and colors in minutes.</p></article>
+    <section id="briefing">
+      <p class="label">Briefing</p>
+      <h2>Who we are</h2>
+      <div class="brief">
+        <div>
+          <p>The Galactic Federation Corps is a Discord server for Helldivers players. We group up for missions at every difficulty, from first-week recruits learning the stratagem menu to veterans chasing the hardest dives.</p>
+          <p>Friendly fire is a lesson, not an offense. Someone is always online to run a mission with you, explain a loadout or help you finish a major order.</p>
+        </div>
+        <dl class="facts">
+          <div><dt>Game</dt><dd>Helldivers</dd></div>
+          <div><dt>Platform</dt><dd>Discord</dd></div>
+          <div><dt>Squad size</dt><dd>1 to 4 divers</dd></div>
+          <div><dt>Skill level</dt><dd>All welcome</dd></div>
+          <div><dt>Cost</dt><dd>Free</dd></div>
+        </dl>
       </div>
     </section>
 
-    <section id="contact">
-      <h2>Contact</h2>
-      <form onsubmit="event.preventDefault(); this.querySelector('button').textContent='Thanks!';">
-        <input type="text" placeholder="Your name" required>
-        <input type="email" placeholder="Your email" required>
-        <textarea placeholder="Message" rows="4" required></textarea>
-        <button class="btn" type="submit">Send</button>
-      </form>
+    <section id="operations">
+      <p class="label">Operations</p>
+      <h2>What we run</h2>
+      <div class="ops">
+        <article><h3>Daily drops</h3><p>Open squads form in voice chat throughout the day. Join one or post your own.</p></article>
+        <article><h3>Recruit training</h3><p>New divers get loadout advice, stratagem practice and a patient squad on low difficulties.</p></article>
+        <article><h3>Major orders</h3><p>We coordinate on the community goal so every mission pushes the front line forward.</p></article>
+        <article><h3>Hard dives</h3><p>Organized runs on top difficulties for players who want a real challenge.</p></article>
+      </div>
+    </section>
+
+    <section id="ranks">
+      <p class="label">Chain of command</p>
+      <h2>Ranks</h2>
+      <ol class="ranks">
+        <li><b>Recruit</b><span>Everyone starts here. Join voice, meet a squad, drop on your first mission.</span></li>
+        <li><b>Diver</b><span>Active member who has completed missions with the Corps.</span></li>
+        <li><b>Sergeant</b><span>Trusted regular who leads squads and helps recruits.</span></li>
+        <li><b>Lieutenant</b><span>Organizes events and hard dives.</span></li>
+        <li><b>Commander</b><span>Runs the Corps and keeps the server in order.</span></li>
+      </ol>
+    </section>
+
+    <section id="enlist">
+      <div class="enlist">
+        <div>
+          <p class="label">Enlist</p>
+          <h2>Call in your squad</h2>
+          <p class="note">Enter the reinforce stratagem to unlock the Discord link: up, down, right, left, up. Use the arrow keys or tap the buttons.</p>
+        </div>
+        <div>
+          <div class="code" id="code" role="group" aria-label="Stratagem input">
+            <button class="key" data-k="ArrowUp" aria-label="Up" type="button">&#8593;</button>
+            <button class="key" data-k="ArrowDown" aria-label="Down" type="button">&#8595;</button>
+            <button class="key" data-k="ArrowRight" aria-label="Right" type="button">&#8594;</button>
+            <button class="key" data-k="ArrowLeft" aria-label="Left" type="button">&#8592;</button>
+          </div>
+          <p class="status" id="status" aria-live="polite">Awaiting input.</p>
+          <p style="margin:1rem 0 0" id="join" hidden><a class="btn" id="join-link" href="#">Join the Discord</a></p>
+        </div>
+      </div>
     </section>
   </main>
 
-  <footer>&copy; 2026 MySite</footer>
-</body>
+  <footer>
+    <b>SERVE. DIVE. REINFORCE.</b>
+    <span>&copy; 2026 Galactic Federation Corps. Unofficial fan community. Not affiliated with or endorsed by the makers or publishers of Helldivers.</span>
+  </footer>
+</div>
+
+<script>
+(function () {
+  // Replace with your real Discord invite link.
+  var DISCORD_URL = '#';
+
+  var SEQ = ['ArrowUp', 'ArrowDown', 'ArrowRight', 'ArrowLeft', 'ArrowUp'];
+  var ARROWS = { ArrowUp: '↑', ArrowDown: '↓', ArrowRight: '→', ArrowLeft: '←' };
+  var pos = 0;
+  var keys = document.querySelectorAll('.key');
+  var status = document.getElementById('status');
+  var join = document.getElementById('join');
+  document.getElementById('join-link').href = DISCORD_URL;
+
+  function reset() { pos = 0; }
+  function press(k) {
+    if (!ARROWS[k]) return;
+    var btn = document.querySelector('.key[data-k="' + k + '"]');
+    if (k === SEQ[pos]) {
+      pos++;
+      btn.classList.add('hit');
+      setTimeout(function () { btn.classList.remove('hit'); }, 150);
+      status.className = 'status';
+      status.textContent = 'Input: ' + SEQ.slice(0, pos).map(function (s) { return ARROWS[s]; }).join(' ');
+      if (pos === SEQ.length) {
+        status.className = 'status ok';
+        status.textContent = 'Reinforcements inbound. Welcome, Diver.';
+        join.hidden = false;
+        reset();
+      }
+    } else {
+      btn.classList.add('wrong');
+      setTimeout(function () { btn.classList.remove('wrong'); }, 250);
+      status.className = 'status';
+      status.textContent = 'Stratagem failed. Try again.';
+      reset();
+    }
+  }
+  keys.forEach(function (b) { b.addEventListener('click', function () { press(b.dataset.k); }); });
+  document.addEventListener('keydown', function (e) {
+    var r = document.getElementById('enlist').getBoundingClientRect();
+    if (ARROWS[e.key] && r.top < window.innerHeight * 0.6 && r.bottom > window.innerHeight * 0.4) {
+      e.preventDefault();
+      press(e.key);
+    }
+  });
+})();
+</script>
 </html>
