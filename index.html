@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Website</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="nav">
+    <a class="logo" href="#">MySite</a>
+    <nav>
+      <a href="#about">About</a>
+      <a href="#features">Features</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Welcome to my website</h1>
+      <p>A clean, fast, responsive starting point you can make your own.</p>
+      <a class="btn" href="#contact">Get in touch</a>
+    </section>
+
+    <section id="about">
+      <h2>About</h2>
+      <p>Tell visitors who you are and what you do. Replace this text with your own story.</p>
+    </section>
+
+    <section id="features">
+      <h2>Features</h2>
+      <div class="cards">
+        <article><h3>Fast</h3><p>Plain HTML and CSS, no build step.</p></article>
+        <article><h3>Responsive</h3><p>Looks good on phones and desktops.</p></article>
+        <article><h3>Easy to edit</h3><p>Change the text and colors in minutes.</p></article>
+      </div>
+    </section>
+
+    <section id="contact">
+      <h2>Contact</h2>
+      <form onsubmit="event.preventDefault(); this.querySelector('button').textContent='Thanks!';">
+        <input type="text" placeholder="Your name" required>
+        <input type="email" placeholder="Your email" required>
+        <textarea placeholder="Message" rows="4" required></textarea>
+        <button class="btn" type="submit">Send</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>&copy; 2026 MySite</footer>
+</body>
+</html>
