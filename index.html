@@ -109,6 +109,29 @@ footer b { color: var(--accent); font-weight: 500; letter-spacing: .1em; }
 .slot ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem; }
 .slot li { font: 700 1.2rem/1 var(--display); text-transform: uppercase; border: 1px solid var(--accent); color: var(--accent); padding: .45rem .8rem; }
 .slots.rolling strong, .slots.rolling li { opacity: .5; }
+.slot { position: relative; }
+.lock { position: absolute; top: .6rem; right: .6rem; background: transparent; color: var(--muted); border: 1px solid var(--line); font: 500 .7rem/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; padding: .3rem .5rem; cursor: pointer; }
+.lock:hover { color: var(--fg); border-color: var(--muted); }
+.lock[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.controls { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; align-items: end; }
+.controls label { display: grid; gap: .35rem; font: 500 .75rem/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.controls select { background: var(--panel); color: var(--fg); border: 1px solid var(--line); padding: .6rem .8rem; font: 500 .95rem var(--body); }
+.controls .check { display: flex; align-items: center; gap: .5rem; padding-bottom: .65rem; }
+.controls input[type="checkbox"] { width: 1.1rem; height: 1.1rem; accent-color: var(--accent); }
+.divers { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); }
+.diver { position: relative; background: var(--panel); padding: 1.1rem 1.25rem; min-width: 0; }
+.diver h3 { font: 700 1.35rem/1.1 var(--display); text-transform: uppercase; color: var(--accent); margin: 0 4.5rem .75rem 0; }
+.diver dl { margin: 0 0 .9rem; display: grid; gap: .35rem; }
+.diver dl div { display: flex; justify-content: space-between; gap: 1rem; font-size: .9rem; }
+.diver dt { font: 500 .72rem/1.6 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.diver dd { margin: 0; text-align: right; }
+.diver ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem; }
+.diver li { font: 700 .95rem/1 var(--display); text-transform: uppercase; border: 1px solid var(--accent); color: var(--accent); padding: .35rem .6rem; }
+.divers.rolling .diver, .divers.rolling li { opacity: .55; }
+.hist { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; }
+.hist button { background: none; border: 0; color: var(--fg); font: 500 .85rem var(--mono); text-align: left; cursor: pointer; padding: .2rem 0; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+.hist button:hover { text-decoration-color: var(--accent); }
+.histwrap[hidden] { display: none; }
 .btns { display: flex; flex-wrap: wrap; gap: 1rem; }
 .btn.alt { background: var(--bg); color: var(--fg); box-shadow: inset 0 0 0 2px var(--line); }
 .btn.alt:hover { box-shadow: inset 0 0 0 2px var(--accent); background: var(--panel); }
@@ -191,21 +214,31 @@ body.has-joinbar { padding-bottom: 4.5rem; }
     </section>
 
     <section id="roll">
-      <div class="roll">
+      <div class="roll" id="roll-ui">
         <div>
           <p class="label">Mission generator</p>
           <h2>Roll your loadout</h2>
-          <p class="note">Can't decide what to bring? Let Super Earth's finest algorithm choose for you. Post the result in the Discord and dare your squad to match it.</p>
+          <p class="note">Pick your squad size and difficulty, then let Super Earth's finest algorithm assign the mission, the gear and the rules. Lock anything you like and roll the rest again. Send the challenge link to your squad so everyone drops with the same plan.</p>
         </div>
-        <div class="slots" id="slots" aria-live="polite">
-          <div class="slot"><small>Mission</small><strong id="r-mission">Press roll</strong></div>
-          <div class="slot"><small>Difficulty</small><strong id="r-diff">-</strong></div>
-          <div class="slot"><small>Squad rule</small><strong id="r-rule">-</strong></div>
-          <div class="slot wide"><small>Stratagems</small><ul id="r-strats"><li>?</li><li>?</li><li>?</li><li>?</li></ul></div>
+        <div class="controls">
+          <label for="squad-size">Squad size
+            <select id="squad-size"><option value="1">1 diver</option><option value="2">2 divers</option><option value="3">3 divers</option><option value="4" selected>4 divers</option></select>
+          </label>
+          <label for="diff-range">Difficulty
+            <select id="diff-range"><option value="any">Any</option><option value="chill">Chill (Trivial to Medium)</option><option value="std">Standard (Challenging to Extreme)</option><option value="brutal">Brutal (Suicide to Helldive)</option></select>
+          </label>
+          <label class="check" for="chaos"><input type="checkbox" id="chaos"> Chaos mode (adds a handicap)</label>
         </div>
+        <div class="slots" id="slots" aria-live="polite"></div>
+        <div class="divers" id="divers"></div>
         <div class="btns">
           <button class="btn" id="roll-btn" type="button">Roll loadout</button>
           <button class="btn alt" id="copy-btn" type="button">Copy to share</button>
+          <button class="btn alt" id="link-btn" type="button">Copy challenge link</button>
+        </div>
+        <div class="histwrap" hidden>
+          <p class="label">Recent rolls</p>
+          <ul class="hist" id="hist"></ul>
         </div>
       </div>
     </section>
@@ -349,42 +382,184 @@ body.has-joinbar { padding-bottom: 4.5rem; }
   Array.prototype.forEach.call(track.children, function (el, i) { el.textContent = NEWS[i % NEWS.length]; });
 
   // Loadout roller
-  var MISSIONS = ['Blitz the nests', 'Escort the convoy', 'Retrieve the data', 'Purge the hive', 'Eliminate the commander', 'Hold the line', 'Raise the flag', 'Destroy the generators'];
-  var DIFFS = ['Trivial', 'Easy', 'Medium', 'Challenging', 'Hard', 'Extreme', 'Suicide Mission', 'Impossible', 'Helldive'];
-  var RULES = ['Everyone takes a different primary', 'No one talks until extraction', 'Dive in with only one support weapon', 'Last one to the pelican buys the next round of memes', 'Only call strikes on your own head', 'Medic carries the objective', 'Follow the leader, no matter what', 'Panic loudly and often'];
-  var STRATS = ['Orbital Strike', 'Eagle Airstrike', 'Napalm Barrage', 'Sentry Turret', 'Supply Pack', 'Shield Generator', 'Machine Gun', 'Mech Walker', 'Rocket Launcher', 'Mine Field', 'Rover Drone', 'Laser Cannon', 'Cluster Bomb', 'Heavy Armor'];
-  var out = { mission: document.getElementById('r-mission'), diff: document.getElementById('r-diff'), rule: document.getElementById('r-rule'), strats: document.getElementById('r-strats') };
-  var slots = document.getElementById('slots');
-  var copyBtn = document.getElementById('copy-btn');
-  var last = '';
+  var D = {
+    enemy: ['Terminids', 'Automatons', 'Illuminate'],
+    mission: ['Blitz the nests', 'Escort the convoy', 'Retrieve the data', 'Purge the hive', 'Eliminate the commander', 'Hold the line', 'Raise the flag', 'Destroy the generators', 'Evacuate the civilians', 'Sabotage the airbase'],
+    diff: ['Trivial', 'Easy', 'Medium', 'Challenging', 'Hard', 'Extreme', 'Suicide Mission', 'Impossible', 'Helldive'],
+    rule: ['Everyone takes a different primary', 'No one talks until extraction', 'Last one to the pelican buys the next round of memes', 'Only call strikes on your own head', 'Medic carries the objective', 'Follow the leader, no matter what', 'Panic loudly and often', 'Nobody splits up, ever', 'Call every stratagem out loud, dramatically'],
+    handicap: ['No armor upgrades', 'Pistols only for the first five minutes', 'Reinforcements are forbidden until the objective is done', 'The loudest diver leads', 'Every kill must be celebrated', 'No grenades', 'Sprint everywhere, never walk', 'Your team gets one revive total'],
+    role: ['Anti-armor', 'Crowd control', 'Support', 'Scout', 'Demolitions', 'Frontline tank'],
+    primary: ['Assault Rifle', 'Marksman Rifle', 'Shotgun', 'Plasma Rifle', 'Flamethrower', 'Submachine Gun', 'Arc Rifle', 'Burst Carbine'],
+    secondary: ['Peacemaker Pistol', 'Revolver', 'Machine Pistol', 'Stun Blade', 'Combat Hatchet', 'Flare Gun'],
+    grenade: ['Frag Grenade', 'Impact Grenade', 'Incendiary Grenade', 'Stun Grenade', 'Smoke Grenade', 'Thermite'],
+    armor: ['Light armor', 'Medium armor', 'Heavy armor', 'Scout armor', 'Engineer armor', 'Fortified armor'],
+    strats: ['Orbital Strike', 'Eagle Airstrike', 'Napalm Barrage', 'Sentry Turret', 'Supply Pack', 'Shield Generator', 'Machine Gun', 'Mech Walker', 'Rocket Launcher', 'Mine Field', 'Rover Drone', 'Laser Cannon', 'Cluster Bomb', 'Heavy Barrage', 'Jump Pack', 'Autocannon Turret']
+  };
+  var DIFF_RANGE = { any: [0, 8], chill: [0, 2], std: [3, 5], brutal: [6, 8] };
+  var GEAR = [['primary', 'Primary'], ['secondary', 'Secondary'], ['grenade', 'Grenade'], ['armor', 'Armor']];
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
-  function sample(a, n) { var c = a.slice(), r = []; while (r.length < n) r.push(c.splice(Math.floor(Math.random() * c.length), 1)[0]); return r; }
-  function show() {
-    var s = sample(STRATS, 4);
-    out.mission.textContent = pick(MISSIONS);
-    out.diff.textContent = pick(DIFFS);
-    out.rule.textContent = pick(RULES);
-    out.strats.innerHTML = '';
-    s.forEach(function (x) { var li = document.createElement('li'); li.textContent = x; out.strats.appendChild(li); });
-    last = 'GFC loadout | ' + out.mission.textContent + ' | ' + out.diff.textContent + ' | Rule: ' + out.rule.textContent + ' | ' + s.join(', ');
+  var el = {
+    slots: document.getElementById('slots'), divers: document.getElementById('divers'), hist: document.getElementById('hist'),
+    size: document.getElementById('squad-size'), range: document.getElementById('diff-range'), chaos: document.getElementById('chaos'),
+    roll: document.getElementById('roll-btn'), copy: document.getElementById('copy-btn'), link: document.getElementById('link-btn')
+  };
+  var state = null, locks = {}, history = [];
+
+  function ri(n) { return Math.floor(Math.random() * n); }
+  function sampleIdx(n, k) { var c = [], r = [], i; for (i = 0; i < n; i++) c.push(i); while (r.length < k) r.push(c.splice(ri(c.length), 1)[0]); return r; }
+  function size() { return parseInt(el.size.value, 10); }
+
+  function newDiver(role) {
+    return { role: role, primary: ri(D.primary.length), secondary: ri(D.secondary.length), grenade: ri(D.grenade.length), armor: ri(D.armor.length), strats: sampleIdx(D.strats.length, 4) };
   }
-  document.getElementById('roll-btn').addEventListener('click', function () {
-    if (reduce) { show(); return; }
+  function rollState(prev) {
+    var r = DIFF_RANGE[el.range.value] || DIFF_RANGE.any;
+    var next = {}, roles = sampleIdx(D.role.length, 4), i;
+    ['enemy', 'mission', 'rule'].forEach(function (k) { next[k] = (locks[k] && prev) ? prev[k] : ri(D[k].length); });
+    next.diff = (locks.diff && prev) ? prev.diff : r[0] + ri(r[1] - r[0] + 1);
+    next.handicap = el.chaos.checked ? ((locks.handicap && prev && prev.handicap >= 0) ? prev.handicap : ri(D.handicap.length)) : -1;
+    next.divers = [];
+    for (i = 0; i < 4; i++) next.divers.push((locks['d' + i] && prev) ? prev.divers[i] : newDiver(roles[i]));
+    return next;
+  }
+
+  function lockBtn(key) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'lock'; b.dataset.k = key;
+    b.setAttribute('aria-pressed', locks[key] ? 'true' : 'false');
+    b.textContent = locks[key] ? 'Locked' : 'Lock';
+    return b;
+  }
+  function slotEl(label, value, key, wide) {
+    var d = document.createElement('div'); d.className = 'slot' + (wide ? ' wide' : '');
+    var s = document.createElement('small'); s.textContent = label;
+    var v = document.createElement('strong'); v.textContent = value;
+    d.appendChild(s); d.appendChild(v); d.appendChild(lockBtn(key));
+    return d;
+  }
+
+  function render() {
+    var s = state, n = size(), i;
+    el.slots.innerHTML = '';
+    el.slots.appendChild(slotEl('Enemy', D.enemy[s.enemy], 'enemy'));
+    el.slots.appendChild(slotEl('Mission', D.mission[s.mission], 'mission'));
+    el.slots.appendChild(slotEl('Difficulty', D.diff[s.diff], 'diff'));
+    el.slots.appendChild(slotEl('Squad rule', D.rule[s.rule], 'rule'));
+    if (s.handicap >= 0) el.slots.appendChild(slotEl('Chaos handicap', D.handicap[s.handicap], 'handicap'));
+    el.divers.innerHTML = '';
+    for (i = 0; i < n; i++) {
+      (function (i) {
+        var dv = s.divers[i];
+        var card = document.createElement('article'); card.className = 'diver';
+        var h = document.createElement('h3'); h.textContent = 'Diver ' + (i + 1) + ': ' + D.role[dv.role];
+        card.appendChild(h); card.appendChild(lockBtn('d' + i));
+        var dl = document.createElement('dl');
+        GEAR.forEach(function (g) {
+          var row = document.createElement('div');
+          var dt = document.createElement('dt'); dt.textContent = g[1];
+          var dd = document.createElement('dd'); dd.textContent = D[g[0]][dv[g[0]]];
+          row.appendChild(dt); row.appendChild(dd); dl.appendChild(row);
+        });
+        card.appendChild(dl);
+        var ul = document.createElement('ul');
+        dv.strats.forEach(function (x) { var li = document.createElement('li'); li.textContent = D.strats[x]; ul.appendChild(li); });
+        card.appendChild(ul);
+        el.divers.appendChild(card);
+      })(i);
+    }
+  }
+
+  function toText() {
+    var s = state, n = size(), out = ['GFC loadout', D.mission[s.mission] + ' vs ' + D.enemy[s.enemy] + ' | ' + D.diff[s.diff], 'Rule: ' + D.rule[s.rule]];
+    if (s.handicap >= 0) out.push('Chaos: ' + D.handicap[s.handicap]);
+    for (var i = 0; i < n; i++) {
+      var dv = s.divers[i];
+      out.push('Diver ' + (i + 1) + ' (' + D.role[dv.role] + '): ' + D.primary[dv.primary] + ', ' + D.secondary[dv.secondary] + ', ' + D.grenade[dv.grenade] + ', ' + D.armor[dv.armor] + ' | ' + dv.strats.map(function (x) { return D.strats[x]; }).join(', '));
+    }
+    return out.join('\n');
+  }
+
+  // Challenge links: #r=squad.enemy.mission.diff.rule.handicap then 9 numbers per diver
+  function encode() {
+    var s = state, n = size(), a = [n, s.enemy, s.mission, s.diff, s.rule, s.handicap], i;
+    for (i = 0; i < n; i++) { var d = s.divers[i]; a.push(d.role, d.primary, d.secondary, d.grenade, d.armor); d.strats.forEach(function (x) { a.push(x); }); }
+    return a.join('.');
+  }
+  function decode(str) {
+    var a = str.split('.').map(function (x) { return parseInt(x, 10); }), i, p;
+    if (a.some(function (x) { return isNaN(x); })) return null;
+    var n = a[0];
+    if (!(n >= 1 && n <= 4) || a.length !== 6 + 9 * n) return null;
+    var s = { enemy: a[1], mission: a[2], diff: a[3], rule: a[4], handicap: a[5], divers: [] };
+    if (s.enemy >= D.enemy.length || s.mission >= D.mission.length || s.diff >= D.diff.length || s.rule >= D.rule.length || s.handicap < -1 || s.handicap >= D.handicap.length) return null;
+    for (i = 0; i < n; i++) {
+      p = 6 + 9 * i;
+      var d = { role: a[p], primary: a[p + 1], secondary: a[p + 2], grenade: a[p + 3], armor: a[p + 4], strats: a.slice(p + 5, p + 9) };
+      if (d.role >= D.role.length || d.primary >= D.primary.length || d.secondary >= D.secondary.length || d.grenade >= D.grenade.length || d.armor >= D.armor.length) return null;
+      if (d.strats.some(function (x) { return x < 0 || x >= D.strats.length; }) || [d.role, d.primary, d.secondary, d.grenade, d.armor].some(function (x) { return x < 0; })) return null;
+      s.divers.push(d);
+    }
+    while (s.divers.length < 4) s.divers.push(newDiver(ri(D.role.length)));
+    return { state: s, size: n };
+  }
+
+  function addHistory() {
+    var s = state;
+    history.unshift({ label: D.mission[s.mission] + ' / ' + D.enemy[s.enemy] + ' / ' + D.diff[s.diff], state: s, size: size() });
+    history = history.slice(0, 5);
+    el.hist.innerHTML = '';
+    history.forEach(function (h) {
+      var li = document.createElement('li'), b = document.createElement('button');
+      b.type = 'button'; b.textContent = h.label;
+      b.addEventListener('click', function () { state = h.state; el.size.value = String(h.size); render(); });
+      li.appendChild(b); el.hist.appendChild(li);
+    });
+    el.hist.parentNode.hidden = false;
+  }
+
+  function doRoll() {
+    var prev = state;
+    if (reduce) { state = rollState(prev); render(); addHistory(); return; }
     var n = 0;
-    slots.classList.add('rolling');
+    el.slots.classList.add('rolling'); el.divers.classList.add('rolling');
     var t = setInterval(function () {
-      show();
-      if (++n >= 9) { clearInterval(t); slots.classList.remove('rolling'); }
+      state = rollState(prev); render();
+      if (++n >= 9) { clearInterval(t); el.slots.classList.remove('rolling'); el.divers.classList.remove('rolling'); addHistory(); }
     }, 70);
-  });
-  copyBtn.addEventListener('click', function () {
-    if (!last) { show(); }
-    function done(msg) { copyBtn.textContent = msg; setTimeout(function () { copyBtn.textContent = 'Copy to share'; }, 1500); }
+  }
+
+  function copyText(btn, text, label) {
+    function done(m) { btn.textContent = m; setTimeout(function () { btn.textContent = label; }, 1500); }
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(last).then(function () { done('Copied'); }, function () { done('Copy failed'); });
+      navigator.clipboard.writeText(text).then(function () { done('Copied'); }, function () { done('Copy failed'); });
     } else { done('Copy failed'); }
+  }
+
+  document.getElementById('roll-ui').addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('.lock') : null;
+    if (!b) return;
+    var k = b.dataset.k;
+    locks[k] = !locks[k];
+    b.setAttribute('aria-pressed', locks[k] ? 'true' : 'false');
+    b.textContent = locks[k] ? 'Locked' : 'Lock';
   });
+  el.roll.addEventListener('click', doRoll);
+  el.size.addEventListener('change', function () { if (state) render(); });
+  el.copy.addEventListener('click', function () { copyText(el.copy, toText(), 'Copy to share'); });
+  el.link.addEventListener('click', function () {
+    var url = location.href.split('#')[0] + '#r=' + encode();
+    copyText(el.link, url, 'Copy challenge link');
+  });
+
+  // Start from a shared challenge link if there is one, otherwise show a first roll
+  var shared = /^#r=([\d.\-]+)$/.exec(location.hash);
+  var parsed = shared ? decode(shared[1]) : null;
+  if (parsed) {
+    state = parsed.state; el.size.value = String(parsed.size); render();
+    var sec = document.getElementById('roll'); if (sec && sec.scrollIntoView) sec.scrollIntoView();
+  } else {
+    state = rollState(null); render();
+  }
 })();
 </script>
 </html>
