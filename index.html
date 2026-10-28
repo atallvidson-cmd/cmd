@@ -85,7 +85,32 @@ footer b { color: var(--accent); font-weight: 500; letter-spacing: .1em; }
 
 @media (min-width: 800px) { .brief { grid-template-columns: 1.3fr 1fr; } .enlist { grid-template-columns: 1fr 1fr; align-items: center; } }
 @media (max-width: 520px) { .ranks li { grid-template-columns: 1fr; gap: .25rem; } }
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+.ticker { overflow: hidden; border-bottom: 1px solid var(--line); background: var(--accent); color: var(--accent-ink); font: 700 .95rem/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; }
+.ticker-track { display: flex; width: max-content; animation: slide 60s linear infinite; }
+.ticker-track span { padding: .7rem 2rem; white-space: nowrap; }
+.ticker-track span::before { content: "\25B6"; margin-right: 1rem; }
+@keyframes slide { to { transform: translateX(-50%); } }
+.ticker:hover .ticker-track { animation-play-state: paused; }
+
+.roll { display: grid; gap: 1.5rem; }
+.slots { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); }
+.slot { background: var(--panel); padding: 1.1rem 1.25rem; min-width: 0; }
+.slot small { display: block; font: 500 .72rem/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: .5rem; }
+.slot strong { font: 700 1.5rem/1.1 var(--display); text-transform: uppercase; overflow-wrap: anywhere; }
+.slot.wide { grid-column: 1 / -1; }
+.slot ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem; }
+.slot li { font: 700 1.2rem/1 var(--display); text-transform: uppercase; border: 1px solid var(--accent); color: var(--accent); padding: .45rem .8rem; }
+.slots.rolling strong, .slots.rolling li { opacity: .5; }
+.btns { display: flex; flex-wrap: wrap; gap: 1rem; }
+.btn.alt { background: var(--bg); color: var(--fg); box-shadow: inset 0 0 0 2px var(--line); }
+.btn.alt:hover { box-shadow: inset 0 0 0 2px var(--accent); background: var(--panel); }
+.hero h1 { animation: drop .7s cubic-bezier(.2, .9, .3, 1.1) both; }
+@keyframes drop { from { transform: translateY(-40px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .ticker { overflow-x: auto; }
+  .ticker-track, .hero h1 { animation: none; }
+}
 </style>
 
 <div class="wrap">
@@ -94,10 +119,15 @@ footer b { color: var(--accent); font-weight: 500; letter-spacing: .1em; }
     <nav>
       <a href="#briefing">Briefing</a>
       <a href="#operations">Operations</a>
+      <a href="#roll">Loadout</a>
       <a href="#ranks">Ranks</a>
       <a href="#enlist">Enlist</a>
     </nav>
   </header>
+
+  <div class="ticker" role="marquee" aria-label="Corps bulletins">
+    <div class="ticker-track" id="ticker"></div>
+  </div>
 
   <main>
     <div class="hero">
@@ -137,6 +167,26 @@ footer b { color: var(--accent); font-weight: 500; letter-spacing: .1em; }
         <article><h3>Recruit training</h3><p>New divers get loadout advice, stratagem practice and a patient squad on low difficulties.</p></article>
         <article><h3>Major orders</h3><p>We coordinate on the community goal so every mission pushes the front line forward.</p></article>
         <article><h3>Hard dives</h3><p>Organized runs on top difficulties for players who want a real challenge.</p></article>
+      </div>
+    </section>
+
+    <section id="roll">
+      <div class="roll">
+        <div>
+          <p class="label">Mission generator</p>
+          <h2>Roll your loadout</h2>
+          <p class="note">Can't decide what to bring? Let Super Earth's finest algorithm choose for you. Post the result in the Discord and dare your squad to match it.</p>
+        </div>
+        <div class="slots" id="slots" aria-live="polite">
+          <div class="slot"><small>Mission</small><strong id="r-mission">Press roll</strong></div>
+          <div class="slot"><small>Difficulty</small><strong id="r-diff">-</strong></div>
+          <div class="slot"><small>Squad rule</small><strong id="r-rule">-</strong></div>
+          <div class="slot wide"><small>Stratagems</small><ul id="r-strats"><li>?</li><li>?</li><li>?</li><li>?</li></ul></div>
+        </div>
+        <div class="btns">
+          <button class="btn" id="roll-btn" type="button">Roll loadout</button>
+          <button class="btn alt" id="copy-btn" type="button">Copy to share</button>
+        </div>
       </div>
     </section>
 
@@ -223,6 +273,58 @@ footer b { color: var(--accent); font-weight: 500; letter-spacing: .1em; }
       e.preventDefault();
       press(e.key);
     }
+  });
+  // News ticker (duplicated once so the loop is seamless)
+  var NEWS = [
+    'Democracy is not optional. Attendance is.',
+    'Reminder: friendly fire is friendly. Mostly.',
+    'Your stratagem is not a toy. It is a weapon of liberty.',
+    'Reinforcing a teammate is an act of patriotism.',
+    'Ask not what the Corps can do for you. Ask what you can drop on them.',
+    'Remember: a diver who runs from the fight lives to run from another fight.',
+    'Report all suspicious bugs. Then step on them.',
+    'Free Discord. Priceless freedom.'
+  ];
+  var track = document.getElementById('ticker');
+  track.innerHTML = NEWS.concat(NEWS).map(function (n) { return '<span></span>'; }).join('');
+  Array.prototype.forEach.call(track.children, function (el, i) { el.textContent = NEWS[i % NEWS.length]; });
+
+  // Loadout roller
+  var MISSIONS = ['Blitz the nests', 'Escort the convoy', 'Retrieve the data', 'Purge the hive', 'Eliminate the commander', 'Hold the line', 'Raise the flag', 'Destroy the generators'];
+  var DIFFS = ['Trivial', 'Easy', 'Medium', 'Challenging', 'Hard', 'Extreme', 'Suicide Mission', 'Impossible', 'Helldive'];
+  var RULES = ['Everyone takes a different primary', 'No one talks until extraction', 'Dive in with only one support weapon', 'Last one to the pelican buys the next round of memes', 'Only call strikes on your own head', 'Medic carries the objective', 'Follow the leader, no matter what', 'Panic loudly and often'];
+  var STRATS = ['Orbital Strike', 'Eagle Airstrike', 'Napalm Barrage', 'Sentry Turret', 'Supply Pack', 'Shield Generator', 'Machine Gun', 'Mech Walker', 'Rocket Launcher', 'Mine Field', 'Rover Drone', 'Laser Cannon', 'Cluster Bomb', 'Heavy Armor'];
+  var out = { mission: document.getElementById('r-mission'), diff: document.getElementById('r-diff'), rule: document.getElementById('r-rule'), strats: document.getElementById('r-strats') };
+  var slots = document.getElementById('slots');
+  var copyBtn = document.getElementById('copy-btn');
+  var last = '';
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function sample(a, n) { var c = a.slice(), r = []; while (r.length < n) r.push(c.splice(Math.floor(Math.random() * c.length), 1)[0]); return r; }
+  function show() {
+    var s = sample(STRATS, 4);
+    out.mission.textContent = pick(MISSIONS);
+    out.diff.textContent = pick(DIFFS);
+    out.rule.textContent = pick(RULES);
+    out.strats.innerHTML = '';
+    s.forEach(function (x) { var li = document.createElement('li'); li.textContent = x; out.strats.appendChild(li); });
+    last = 'GFC loadout | ' + out.mission.textContent + ' | ' + out.diff.textContent + ' | Rule: ' + out.rule.textContent + ' | ' + s.join(', ');
+  }
+  document.getElementById('roll-btn').addEventListener('click', function () {
+    if (reduce) { show(); return; }
+    var n = 0;
+    slots.classList.add('rolling');
+    var t = setInterval(function () {
+      show();
+      if (++n >= 9) { clearInterval(t); slots.classList.remove('rolling'); }
+    }, 70);
+  });
+  copyBtn.addEventListener('click', function () {
+    if (!last) { show(); }
+    function done(msg) { copyBtn.textContent = msg; setTimeout(function () { copyBtn.textContent = 'Copy to share'; }, 1500); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(last).then(function () { done('Copied'); }, function () { done('Copy failed'); });
+    } else { done('Copy failed'); }
   });
 })();
 </script>
