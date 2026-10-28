@@ -7,6 +7,9 @@
 <meta name="description" content="The Galactic Federation Corps: a Helldivers Discord community. Squads run every day. Join up and spread managed democracy.">
 <meta name="theme-color" content="#0c0d0f">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://atallvidson-cmd.github.io/cmd/">
+<meta property="og:image" content="https://atallvidson-cmd.github.io/cmd/og.png">
+<meta name="twitter:card" content="summary_large_image">
 <meta property="og:title" content="Galactic Federation Corps">
 <meta property="og:description" content="A Helldivers Discord community. Squads run every day. No diver deploys alone.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230c0d0f'/%3E%3Cpath d='M16 3l11 4v8c0 7-5 12-11 14C10 27 5 22 5 15V7z' fill='%23ffd400'/%3E%3C/svg%3E">
@@ -116,6 +119,17 @@ footer b { color: var(--accent); font-weight: 500; letter-spacing: .1em; }
   .ticker { overflow-x: auto; }
   .ticker-track, .hero h1 { animation: none; }
 }
+.bar nav a.navjoin { background: var(--accent); color: var(--accent-ink); padding: .35rem .8rem; font-weight: 500; }
+.bar nav a.navjoin:hover { background: #fff; color: var(--accent-ink); }
+.share { display: grid; gap: 1.25rem; }
+.share .btns { display: flex; flex-wrap: wrap; gap: 1rem; }
+.msg { margin: 0; padding: 1rem 1.25rem; background: var(--panel); border: 1px solid var(--line); font-family: var(--mono); font-size: .85rem; color: #cfcfc8; overflow-wrap: anywhere; }
+.joinbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; gap: .75rem; align-items: center; justify-content: center; flex-wrap: wrap; background: var(--accent); color: var(--accent-ink); padding: .7rem max(16px, env(safe-area-inset-right, 0px)) calc(.7rem + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); font: 700 1rem/1.2 var(--mono); letter-spacing: .04em; text-transform: uppercase; }
+.joinbar a { background: var(--accent-ink); color: var(--accent); text-decoration: none; padding: .5rem 1rem; }
+.joinbar a:hover { background: #fff; color: var(--accent-ink); }
+.joinbar button { background: transparent; border: 0; color: var(--accent-ink); font: inherit; font-size: 1.3rem; cursor: pointer; padding: .25rem .5rem; }
+.joinbar[hidden] { display: none; }
+body.has-joinbar { padding-bottom: 4.5rem; }
 </style>
 
 <div class="wrap">
@@ -126,7 +140,7 @@ footer b { color: var(--accent); font-weight: 500; letter-spacing: .1em; }
       <a href="#operations">Operations</a>
       <a href="#roll">Loadout</a>
       <a href="#ranks">Ranks</a>
-      <a href="#enlist">Enlist</a>
+      <a class="navjoin" data-discord href="https://discord.gg/rEmcNk9WT" target="_blank" rel="noopener">Join Discord</a>
     </nav>
   </header>
 
@@ -141,7 +155,8 @@ footer b { color: var(--accent); font-weight: 500; letter-spacing: .1em; }
       <h1>Galactic <em>Federation</em> Corps</h1>
       <p class="lede">A Helldivers community for players who drop together, die together and call in reinforcements together. Squads run every day. No diver deploys alone.</p>
       <div class="cta">
-        <a class="btn" href="#enlist">Enlist now</a>
+        <a class="btn" data-discord href="https://discord.gg/rEmcNk9WT" target="_blank" rel="noopener">Join the Discord</a>
+        <a class="btn alt" href="#roll">Roll a loadout</a>
         <span class="note">Free service. Liberty not included.</span>
       </div>
     </div>
@@ -226,6 +241,21 @@ footer b { color: var(--accent); font-weight: 500; letter-spacing: .1em; }
         </div>
       </div>
     </section>
+
+    <section id="spread">
+      <div class="share">
+        <div>
+          <p class="label">Spread the word</p>
+          <h2>Recruit your squad</h2>
+          <p class="note">Know a diver who needs a team? Copy the message below and send it to them.</p>
+        </div>
+        <p class="msg" id="invite-msg"></p>
+        <div class="btns">
+          <button class="btn" id="copy-invite" type="button">Copy invite message</button>
+          <button class="btn alt" id="copy-site" type="button">Copy site link</button>
+        </div>
+      </div>
+    </section>
   </main>
 
   <footer>
@@ -246,6 +276,30 @@ footer b { color: var(--accent); font-weight: 500; letter-spacing: .1em; }
   var status = document.getElementById('status');
   var join = document.getElementById('join');
   document.getElementById('join-link').href = DISCORD_URL;
+  Array.prototype.forEach.call(document.querySelectorAll('[data-discord]'), function (a) { a.href = DISCORD_URL; });
+
+  // Sticky join bar
+  var bar = document.createElement('div');
+  bar.className = 'joinbar';
+  bar.innerHTML = '<span>Squads drop daily. Reinforce us.</span><a data-discord target="_blank" rel="noopener">Join the Discord</a><button type="button" aria-label="Dismiss">&times;</button>';
+  bar.querySelector('a').href = DISCORD_URL;
+  bar.querySelector('button').addEventListener('click', function () { bar.hidden = true; document.body.classList.remove('has-joinbar'); });
+  document.body.appendChild(bar);
+  document.body.classList.add('has-joinbar');
+
+  // Share messages
+  var SITE_URL = location.href.split('#')[0];
+  var INVITE = 'Join the Galactic Federation Corps, a Helldivers Discord community. Squads drop every day and new divers are welcome. ' + DISCORD_URL;
+  document.getElementById('invite-msg').textContent = INVITE;
+  function copyText(btn, text, label) {
+    function done(m) { btn.textContent = m; setTimeout(function () { btn.textContent = label; }, 1500); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { done('Copied'); }, function () { done('Copy failed'); });
+    } else { done('Copy failed'); }
+  }
+  var ci = document.getElementById('copy-invite'), cs = document.getElementById('copy-site');
+  ci.addEventListener('click', function () { copyText(ci, INVITE, 'Copy invite message'); });
+  cs.addEventListener('click', function () { copyText(cs, SITE_URL, 'Copy site link'); });
 
   function reset() { pos = 0; }
   function press(k) {
