@@ -382,19 +382,40 @@ body.has-joinbar { padding-bottom: 4.5rem; }
   Array.prototype.forEach.call(track.children, function (el, i) { el.textContent = NEWS[i % NEWS.length]; });
 
   // Loadout roller
+  var PASSIVES = ['Engineering Kit', 'Servo-Assisted', 'Fortified', 'Extra Padding', 'Med-Kit', 'Scout', 'Democracy Protects', 'Electrical Conduit', 'Inflammable', 'Advanced Filtration', 'Peak Physique', 'Gunslinger', 'Unflinching', 'Siege-Ready', 'Acclimated'];
+  var ARMOR = [];
+  ['Light', 'Medium', 'Heavy'].forEach(function (w) { PASSIVES.forEach(function (x) { ARMOR.push(w + ' armor: ' + x); }); });
+  // Backpack stratagems (a diver can only wear one)
+  var BACKPACKS = ['LIFT-850 Jump Pack', 'B-1 Supply Pack', 'SH-32 Shield Generator Pack', 'SH-20 Ballistic Shield Backpack', 'SH-51 Directional Shield', 'AX/AR-23 "Guard Dog"', 'AX/LAS-5 "Guard Dog" Rover', 'AX/TX-13 "Guard Dog" Dog Breath'];
+  var OTHER_STRATS = [
+    'Orbital Gatling Barrage', 'Orbital Airburst Strike', 'Orbital 120MM HE Barrage', 'Orbital 380MM HE Barrage', 'Orbital Walking Barrage', 'Orbital Laser', 'Orbital Railcannon Strike', 'Orbital Precision Strike', 'Orbital Gas Strike', 'Orbital EMS Strike', 'Orbital Smoke Strike',
+    'Eagle Strafing Run', 'Eagle Airstrike', 'Eagle Cluster Bomb', 'Eagle Napalm Airstrike', 'Eagle Smoke Strike', 'Eagle 110MM Rocket Pods', 'Eagle 500kg Bomb',
+    'MG-43 Machine Gun', 'APW-1 Anti-Materiel Rifle', 'M-105 Stalwart', 'EAT-17 Expendable Anti-Tank', 'GR-8 Recoilless Rifle', 'FLAM-40 Flamethrower', 'AC-8 Autocannon', 'MG-206 Heavy Machine Gun', 'RS-422 Railgun', 'FAF-14 Spear', 'GL-21 Grenade Launcher', 'LAS-98 Laser Cannon', 'ARC-3 Arc Thrower', 'LAS-99 Quasar Cannon', 'TX-41 Sterilizer',
+    'A/MG-43 Machine Gun Sentry', 'A/G-16 Gatling Sentry', 'A/M-12 Mortar Sentry', 'A/AC-8 Autocannon Sentry', 'A/MLS-4X Rocket Sentry', 'A/M-23 EMS Mortar Sentry',
+    'E/MG-101 HMG Emplacement', 'FX-12 Shield Generator Relay', 'A/ARC-3 Tesla Tower', 'E/AT-12 Anti-Tank Emplacement',
+    'MD-6 Anti-Personnel Minefield', 'MD-I4 Incendiary Mines', 'MD-17 Anti-Tank Mines', 'MD-8 Gas Mines',
+    'EXO-45 Patriot Exosuit', 'EXO-49 Emancipator Exosuit'
+  ];
   var D = {
     enemy: ['Terminids', 'Automatons', 'Illuminate'],
-    mission: ['Blitz the nests', 'Escort the convoy', 'Retrieve the data', 'Purge the hive', 'Eliminate the commander', 'Hold the line', 'Raise the flag', 'Destroy the generators', 'Evacuate the civilians', 'Sabotage the airbase'],
+    mission: ['Blitz: Search and Destroy', 'Eradicate enemy forces', 'Launch ICBM', 'Retrieve Essential Personnel', 'Raise the Flag', 'Conduct Geological Survey', 'Evacuate High-Value Assets', 'Neutralize Orbital Defense Cannons', 'Sabotage Air Base', 'Terminate Illegal Broadcast', 'Purge Hatcheries', 'Retrieve Valuable Data'],
     diff: ['Trivial', 'Easy', 'Medium', 'Challenging', 'Hard', 'Extreme', 'Suicide Mission', 'Impossible', 'Helldive'],
     rule: ['Everyone takes a different primary', 'No one talks until extraction', 'Last one to the pelican buys the next round of memes', 'Only call strikes on your own head', 'Medic carries the objective', 'Follow the leader, no matter what', 'Panic loudly and often', 'Nobody splits up, ever', 'Call every stratagem out loud, dramatically'],
-    handicap: ['No armor upgrades', 'Pistols only for the first five minutes', 'Reinforcements are forbidden until the objective is done', 'The loudest diver leads', 'Every kill must be celebrated', 'No grenades', 'Sprint everywhere, never walk', 'Your team gets one revive total'],
+    handicap: ['No armor passives allowed (pick the plainest armor)', 'Secondary weapon only for the first five minutes', 'No reinforcing until the objective is done', 'The loudest diver leads', 'Every kill must be celebrated', 'No grenades', 'Sprint everywhere, never walk', 'Your team gets one reinforce total'],
     role: ['Anti-armor', 'Crowd control', 'Support', 'Scout', 'Demolitions', 'Frontline tank'],
-    primary: ['Assault Rifle', 'Marksman Rifle', 'Shotgun', 'Plasma Rifle', 'Flamethrower', 'Submachine Gun', 'Arc Rifle', 'Burst Carbine'],
-    secondary: ['Peacemaker Pistol', 'Revolver', 'Machine Pistol', 'Stun Blade', 'Combat Hatchet', 'Flare Gun'],
-    grenade: ['Frag Grenade', 'Impact Grenade', 'Incendiary Grenade', 'Stun Grenade', 'Smoke Grenade', 'Thermite'],
-    armor: ['Light armor', 'Medium armor', 'Heavy armor', 'Scout armor', 'Engineer armor', 'Fortified armor'],
-    strats: ['Orbital Strike', 'Eagle Airstrike', 'Napalm Barrage', 'Sentry Turret', 'Supply Pack', 'Shield Generator', 'Machine Gun', 'Mech Walker', 'Rocket Launcher', 'Mine Field', 'Rover Drone', 'Laser Cannon', 'Cluster Bomb', 'Heavy Barrage', 'Jump Pack', 'Autocannon Turret']
+    primary: ['AR-23 Liberator', 'AR-23P Liberator Penetrator', 'AR-23C Liberator Concussive', 'AR-23A Liberator Carbine', 'BR-14 Adjudicator', 'R-63 Diligence', 'R-63CS Diligence Counter Sniper', 'R-2124 Constitution', 'MP-98 Knight', 'SMG-37 Defender', 'SMG-72 Pummeler', 'SG-8 Punisher', 'SG-8S Slugger', 'SG-8P Punisher Plasma', 'SG-225 Breaker', 'SG-225SP Breaker Spray&Pray', 'SG-225IE Breaker Incendiary', 'LAS-5 Scythe', 'PLAS-1 Scorcher', 'PLAS-101 Purifier', 'ARC-12 Blitzer', 'FLAM-66 Torcher', 'JAR-5 Dominator', 'CB-9 Exploding Crossbow', 'AR-61 Tenderizer', 'AR-2 Coyote', 'SG-20 Halt', 'SG-451 Cookout'],
+    secondary: ['P-2 Peacemaker', 'P-19 Redeemer', 'P-4 Senator', 'LAS-7 Dagger', 'GP-31 Grenade Pistol', 'P-113 Verdict', 'P-11 Stim Pistol', 'SG-22 Bushwhacker', 'PLAS-15 Loyalist', 'CQC-19 Stun Lance', 'CQC-30 Stun Baton', 'CQC-5 Combat Hatchet'],
+    grenade: ['G-12 High Explosive', 'G-6 Frag', 'G-16 Impact', 'G-3 Smoke', 'G-10 Incendiary', 'G-23 Stun', 'G-123 Thermite', 'G-13 Incendiary Impact', 'G-50 Seeker', 'G-4 Gas', 'G-142 Pyrotech', 'K-2 Throwing Knife', 'G-109 Urchin'],
+    armor: ARMOR,
+    strats: BACKPACKS.concat(OTHER_STRATS)
   };
+  var BACKPACK_COUNT = BACKPACKS.length;  // strats[0 .. BACKPACK_COUNT-1] are backpacks
+  function pickStrats() {
+    // Four stratagems, at most one backpack
+    var r;
+    do { r = sampleIdx(D.strats.length, 4); } while (r.filter(function (x) { return x < BACKPACK_COUNT; }).length > 1);
+    return r;
+  }
   var DIFF_RANGE = { any: [0, 8], chill: [0, 2], std: [3, 5], brutal: [6, 8] };
   var GEAR = [['primary', 'Primary'], ['secondary', 'Secondary'], ['grenade', 'Grenade'], ['armor', 'Armor']];
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -410,7 +431,7 @@ body.has-joinbar { padding-bottom: 4.5rem; }
   function size() { return parseInt(el.size.value, 10); }
 
   function newDiver(role) {
-    return { role: role, primary: ri(D.primary.length), secondary: ri(D.secondary.length), grenade: ri(D.grenade.length), armor: ri(D.armor.length), strats: sampleIdx(D.strats.length, 4) };
+    return { role: role, primary: ri(D.primary.length), secondary: ri(D.secondary.length), grenade: ri(D.grenade.length), armor: ri(D.armor.length), strats: pickStrats() };
   }
   function rollState(prev) {
     var r = DIFF_RANGE[el.range.value] || DIFF_RANGE.any;
